@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Scanner;
@@ -222,7 +223,7 @@ public class FileProcessor
         try
         {
             FileOutputStream fileOutputStream=new FileOutputStream(filename);
-            PrintWriter output=new PrintWriter(fileOutputStream);
+            PrintWriter output=new PrintWriter(new OutputStreamWriter(fileOutputStream,StandardCharsets.UTF_8));
             output.print(generate_file_content());
             output.close();
             fileOutputStream.close();
