@@ -1,23 +1,58 @@
+import sun.font.FontDesignMetrics;
+
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TreeSet;
+class LoadFont
+{
+    public static Font loadFont(String fontFileName,float fontSize)
+    {
+        Font[]fonts=GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+        try
+        {
+            java.net.URL file=Main.class.getResource(fontFileName);
+            Font dynamicFont=Font.createFont(Font.TRUETYPE_FONT,file.openStream());
+//            System.out.println(dynamicFont.getFontName());
+            for(Font font:fonts)
+            {
+//                System.out.println(font.getFontName());
+                if(font.getFontName().equals(dynamicFont.getFontName()))
+                {
+                    return new Font(font.getFontName(),Font.PLAIN,(int)(fontSize+0.5));
+                }
+            }
+            Font dynamicFontPt=dynamicFont.deriveFont(fontSize);
+            return dynamicFontPt;
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+            return new java.awt.Font("PMingLiU",Font.PLAIN,(int)(fontSize+0.5));
+        }
+    }
+}
 public class Main
 {
     static int nrow=8,ncol=18;
-    static int character_size=70,pinyin_size=36;
-    static String character_font="PMingLiU",pinyin_font="Arial";
+    static int character_size=65,pinyin_size=25;
+    static String character_font_name="PMingLiU.ttf",pinyin_font_name="GB Pinyinok-C.ttf";
+    static Font character_font,pinyin_font;
     static String[][]characters;
     static String[][]pinyins;
     static boolean[][]cell_editable;
     static String[][]contents;
     static String[]columns;
+    static int column_width;
+    static Dimension screenSize;
     static JTextField path=new JTextField();
     static TreeSet<String>alerts=new TreeSet<>();
     static Color alert_color=Color.red;
@@ -51,11 +86,11 @@ public class Main
                     });
                     initialized=true;
                 }
-                component.setFont(new Font(character_font,Font.PLAIN,character_size-10));
+                component.setFont(character_font);
             }
             else
             {
-                component.setFont(new Font(pinyin_font,Font.PLAIN,pinyin_size-10));
+                component.setFont(pinyin_font);
             }
             return component;
         }
@@ -115,12 +150,12 @@ public class Main
                 Component cell=super.getTableCellRendererComponent(table,value,isSelected,hasFocus,row,column);
                 if(row%2==1)
                 {
-                    cell.setFont(new Font(character_font,Font.PLAIN,character_size-10));
+                    cell.setFont(character_font);
                     table.setRowHeight(row,character_size);
                 }
                 else
                 {
-                    cell.setFont(new Font(pinyin_font,Font.PLAIN,pinyin_size-10));
+                    cell.setFont(pinyin_font);
                     table.setRowHeight(row,pinyin_size);
                 }
                 if(alerts.contains(contents[row/2*2+1][column]))
@@ -138,6 +173,7 @@ public class Main
         {
             jTable.getColumn(column).setCellRenderer(cell_manager);
             jTable.getColumn(column).setCellEditor(new MyTableCellEditor());
+            jTable.getColumn(column).setPreferredWidth(column_width);
         }
     }
     public static void open(JFrame jFrame)
@@ -179,8 +215,14 @@ public class Main
             JOptionPane.showMessageDialog(jFrame,"文件無法寫入。","錯誤",JOptionPane.ERROR_MESSAGE);
         }
     }
-    public static void previous_page(JTable jTable)
+    public static void previous_page(JFrame jFrame,JTable jTable)
     {
+        File file=new File(path.getText());
+        if(!file.exists())
+        {
+            JOptionPane.showMessageDialog(jFrame,"未打開文件。","錯誤",JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         jTable.setCellSelectionEnabled(false);
         if(jTable.isEditing())
         {
@@ -191,8 +233,14 @@ public class Main
         renew_contents();
         jTable.setCellSelectionEnabled(true);
     }
-    public static void next_page(JTable jTable)
+    public static void next_page(JFrame jFrame,JTable jTable)
     {
+        File file=new File(path.getText());
+        if(!file.exists())
+        {
+            JOptionPane.showMessageDialog(jFrame,"未打開文件。","錯誤",JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         jTable.setCellSelectionEnabled(false);
         if(jTable.isEditing())
         {
@@ -203,14 +251,12 @@ public class Main
         renew_contents();
         jTable.setCellSelectionEnabled(true);
     }
-    public static void setComponents(JFrame jFrame,JTable jTable,JPanel jPanel)
+    public static void setComponents(JFrame jFrame,JTable jTable,Box jPanel)
     {
-        jPanel.setLayout(new BoxLayout(jPanel,BoxLayout.Y_AXIS));
         Box vbox_1=new Box(BoxLayout.X_AXIS);
         JLabel path_label=new JLabel("文件路徑：");
         vbox_1.add(path_label);
         path.setColumns(6);
-        path.setPreferredSize(new Dimension(character_size,path_label.getHeight()));
         vbox_1.add(path);
         JButton browse=new JButton("瀏覽");
         browse.addActionListener(e->
@@ -234,7 +280,7 @@ public class Main
         Box vbox_2=new Box(BoxLayout.X_AXIS);
         JLabel alert_label=new JLabel("突出字符集：");
         vbox_2.add(alert_label);
-        JTextArea alert_texts=new JTextArea();
+        JTextField alert_texts=new JTextField();
         alert_texts.setColumns(6);
         alert_texts.setPreferredSize(new Dimension(character_size*2,alert_label.getHeight()));
         vbox_2.add(alert_texts);
@@ -263,11 +309,11 @@ public class Main
         vbox_3.add(new JLabel("頁"));
         previous_page.addActionListener(e->
         {
-            previous_page(jTable);
+            previous_page(jFrame,jTable);
         });
         previous_page.registerKeyboardAction(e->
         {
-            previous_page(jTable);
+            previous_page(jFrame,jTable);
         },KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,InputEvent.ALT_DOWN_MASK),JComponent.WHEN_IN_FOCUSED_WINDOW);
         JButton save=new JButton("保存（Ctrl+S）");
         save.addActionListener(e->
@@ -285,13 +331,16 @@ public class Main
         JButton next_page=new JButton("→（Alt+→）");
         next_page.addActionListener(e->
         {
-            next_page(jTable);
+            next_page(jFrame,jTable);
         });
         next_page.registerKeyboardAction(e->
         {
-            next_page(jTable);
+            next_page(jFrame,jTable);
         },KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,InputEvent.ALT_DOWN_MASK),JComponent.WHEN_IN_FOCUSED_WINDOW);
         vbox_3.add(next_page);
+        vbox_1.setPreferredSize(new Dimension((int)(screenSize.getWidth()/2.0+0.5)-40,27));
+        vbox_2.setPreferredSize(new Dimension((int)(screenSize.getWidth()/2.0+0.5)-40,27));
+        vbox_3.setPreferredSize(new Dimension((int)(screenSize.getWidth()/2.0+0.5)-40,27));
         jPanel.add(vbox_1);
         jPanel.add(vbox_2);
         jPanel.add(vbox_3);
@@ -300,15 +349,27 @@ public class Main
     static String[]initial_pinyins={"ná","mó","ē","mí","tuó","fó"};
     public static void main(String[]args)
     {
-        Dimension screenSize=Toolkit.getDefaultToolkit().getScreenSize();
+        character_font=LoadFont.loadFont(character_font_name,character_size);
+        character_size=FontDesignMetrics.getMetrics(character_font).getHeight();
+        pinyin_font=LoadFont.loadFont(pinyin_font_name,pinyin_size);
+        pinyin_size=FontDesignMetrics.getMetrics(pinyin_font).getHeight();
+        column_width=Math.max(FontDesignMetrics.getMetrics(character_font).stringWidth("邊"),FontDesignMetrics.getMetrics(pinyin_font).stringWidth("chuán"))+3;
+        screenSize=GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds().getSize();
         JFrame frame=new JFrame("HTML拼音校對");
+        try
+        {
+            frame.setIconImage(ImageIO.read(Main.class.getResource("icon-proofread.png")));
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+        }
         frame.setBounds(new Rectangle((int)(screenSize.getWidth()/2.0+0.5),0,(int)(screenSize.getWidth()/2.0+0.5),(int)(screenSize.getHeight()+0.5)));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        JPanel all=new JPanel();
-        all.setBounds(new Rectangle((int)(screenSize.getWidth()/2.0+0.5),0,(int)(screenSize.getWidth()/2.0+0.5)-60,(int)(screenSize.getHeight()+0.5)));
-        all.setLayout(new FlowLayout());
-        nrow=(int)(all.getSize().getHeight()/(double)(character_size+pinyin_size)*5.0/6.0);
-        ncol=(int)(all.getSize().getWidth()/(double)character_size);
+        Box all=new Box(BoxLayout.Y_AXIS);
+        all.setBounds(new Rectangle((int)(screenSize.getWidth()/2.0+0.5),0,(int)(screenSize.getWidth()/2.0+0.5)-40,(int)(screenSize.getHeight()+0.5)-40));
+        nrow=(int)((all.getSize().getHeight()-81)/(double)(character_size+pinyin_size));
+        ncol=(int)(all.getSize().getWidth()/(double)column_width);
         characters=new String[nrow][ncol];
         pinyins=new String[nrow][ncol];
         cell_editable=new boolean[nrow][ncol];
@@ -335,10 +396,12 @@ public class Main
             }
         }
         renew_contents();
-        JPanel jPanel=new JPanel();
+        Box jPanel=new Box(BoxLayout.Y_AXIS);
         jPanel.setSize(all.getWidth(),all.getHeight()-jTable.getHeight());
         setComponents(frame,jTable,jPanel);
         all.add(jPanel);
+        JScrollPane jScrollPane=new JScrollPane(all);
+        frame.getContentPane().add(jScrollPane,BorderLayout.CENTER);
         frame.add(all);
         frame.setVisible(true);
         frame.setResizable(false);

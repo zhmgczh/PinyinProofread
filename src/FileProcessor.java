@@ -53,7 +53,7 @@ public class FileProcessor
     {
         StringBuilder content=new StringBuilder();
         FileInputStream fileInputStream=new FileInputStream(filename);
-        Scanner input=new Scanner(fileInputStream);
+        Scanner input=new Scanner(fileInputStream,"UTF-8");
         while(input.hasNextLine())
         {
             content.append(input.nextLine()).append('\n');
