@@ -403,6 +403,13 @@ public class Main
         JScrollPane jScrollPane=new JScrollPane(all);
         frame.getContentPane().add(jScrollPane,BorderLayout.CENTER);
         frame.add(all);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Record.write_records();
+                super.windowClosing(e);
+            }
+        });
         frame.setVisible(true);
         frame.setResizable(false);
     }

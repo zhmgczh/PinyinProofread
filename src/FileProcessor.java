@@ -120,9 +120,24 @@ public class FileProcessor
                 }
             }
         }
-        if(pages.get(pages.size()-1)[0][0]==null)
+        if(null==pages.get(pages.size()-1)[0][0])
         {
-            pages.remove(pages.size()-1);
+            if(1==pages.size())
+            {
+                for(int i=0;i<nrow;++i)
+                {
+                    for(int j=0;j<ncol;++j)
+                    {
+                        current_page[row_index][column_index]=blank;
+                        row_index=get_next_row_index(row_index,column_index,nrow,ncol);
+                        column_index=get_next_column_index(row_index,column_index,nrow,ncol);
+                    }
+                }
+            }
+            else
+            {
+                pages.remove(pages.size()-1);
+            }
         }
         else
         {
@@ -248,6 +263,7 @@ public class FileProcessor
             e.printStackTrace();
             return false;
         }
+        current_page_index=Math.max(0,Math.min(Record.get(filename),pages.size()-1));
         push_up();
         Main.current_page.setText(((Integer)(current_page_index+1)).toString());
         Main.total_pages.setText(((Integer)(pages.size())).toString());
@@ -261,6 +277,7 @@ public class FileProcessor
             --current_page_index;
             Main.current_page.setText(((Integer)(current_page_index+1)).toString());
         }
+        Record.add(filename,current_page_index);
         push_up();
     }
     public static void next_page()
@@ -271,6 +288,7 @@ public class FileProcessor
             ++current_page_index;
             Main.current_page.setText(((Integer)(current_page_index+1)).toString());
         }
+        Record.add(filename,current_page_index);
         push_up();
     }
 }
