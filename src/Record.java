@@ -1,4 +1,5 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.TreeMap;
 public class Record
@@ -14,7 +15,7 @@ public class Record
                 record_file.createNewFile();
             }
             FileInputStream fileInputStream=new FileInputStream(record_file);
-            Scanner input=new Scanner(fileInputStream);
+            Scanner input=new Scanner(fileInputStream,"UTF-8");
             while(input.hasNextLine())
             {
                 String input_text=input.nextLine();
@@ -37,12 +38,12 @@ public class Record
         try
         {
             FileOutputStream fileOutputStream=new FileOutputStream(record_file);
-            PrintWriter out=new PrintWriter(fileOutputStream);
+            PrintWriter output=new PrintWriter(new OutputStreamWriter(fileOutputStream,StandardCharsets.UTF_8));
             for(String file_path:records.keySet())
             {
-                out.println(file_path+">"+records.get(file_path));
+                output.println(file_path+">"+records.get(file_path));
             }
-            out.close();
+            output.close();
             fileOutputStream.close();
         }
         catch(IOException e)
