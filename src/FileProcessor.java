@@ -199,8 +199,8 @@ public class FileProcessor
         {
             for(int j=0;j<current_page[0].length;++j)
             {
-                Main.characters[i][j]=(null==current_page[i][j].character?"":current_page[i][j].character);
-                Main.pinyins[i][j]=(null==current_page[i][j].pinyin?"":current_page[i][j].pinyin);
+                Main.characters[i][j]=(null==current_page[i][j].character?"":current_page[i][j].character).trim();
+                Main.pinyins[i][j]=(null==current_page[i][j].pinyin?"":current_page[i][j].pinyin).trim();
                 Main.cell_editable[i][j]=page_cell_editable[current_page_index][i][j];
             }
         }
@@ -212,8 +212,8 @@ public class FileProcessor
         {
             for(int j=0;j<current_page[0].length;++j)
             {
-                current_page[i][j].character=(""==Main.characters[i][j]?null:Main.characters[i][j]);
-                current_page[i][j].pinyin=(""==Main.pinyins[i][j]?null:Main.pinyins[i][j]);
+                current_page[i][j].character=(""==Main.characters[i][j]?null:Main.characters[i][j].trim());
+                current_page[i][j].pinyin=(""==Main.pinyins[i][j]?null:Main.pinyins[i][j].trim());
             }
         }
     }
