@@ -5,18 +5,33 @@ public class Audio
     static boolean is_play=false;
     public static void audio_play(String pinyin)
     {
-        java.net.URL file=Audio.class.getResource("yinjies/"+pinyin+".mp3");
-        MP3Player mp3Player=new MP3Player(file);
-        mp3Player.play();
-        while(!(mp3Player.isStopped()||mp3Player.isPaused()))
+        try
         {
+            java.net.URL file=Audio.class.getResource("yinjies/"+pinyin+".mp3");
+            MP3Player mp3Player=new MP3Player(file);
+            mp3Player.play();
+            while(!(mp3Player.isStopped()||mp3Player.isPaused()))
+            {
+                try
+                {
+                    Thread.sleep(25);
+                }
+                catch(InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        catch(NullPointerException e)
+        {
+            e.printStackTrace();
             try
             {
-                Thread.sleep(25);
+                Thread.sleep(1000);
             }
-            catch(InterruptedException e)
+            catch(InterruptedException e1)
             {
-                e.printStackTrace();
+                e1.printStackTrace();
             }
         }
     }
