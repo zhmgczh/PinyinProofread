@@ -3,6 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/PinyinProofread_jar</output-path>
     <root id="archive" name="PinyinProofread.jar">
       <element id="module-output" name="PinyinProofread" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/jaco-mp3-player-0.9.3.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

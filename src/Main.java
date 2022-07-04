@@ -1,5 +1,4 @@
 import sun.font.FontDesignMetrics;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -7,7 +6,6 @@ import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -44,7 +42,7 @@ public class Main
 {
     static int nrow=8,ncol=18;
     static int character_size=65,pinyin_size=25;
-    static String character_font_name="PMingLiU.ttf",pinyin_font_name="GB Pinyinok-C.ttf";
+    static String character_font_name= "fonts/PMingLiU.ttf",pinyin_font_name= "fonts/GB Pinyinok-C.ttf";
     static Font character_font,pinyin_font;
     static String[][]characters;
     static String[][]pinyins;
@@ -251,6 +249,22 @@ public class Main
         renew_contents();
         jTable.setCellSelectionEnabled(true);
     }
+    public static void play_or_stop(JFrame jFrame,JTable jTable,JButton play)
+    {
+        if("播放（Ctrl+P）".equals(play.getText()))
+        {
+            new Thread(()->
+            {
+                Audio.play(jFrame,jTable);
+            }).start();
+            play.setText("暫停（Ctrl+P）");
+        }
+        else
+        {
+            Audio.stop();
+            play.setText("播放（Ctrl+P）");
+        }
+    }
     public static void setComponents(JFrame jFrame,JTable jTable,Box jPanel)
     {
         Box vbox_1=new Box(BoxLayout.X_AXIS);
@@ -325,6 +339,16 @@ public class Main
             save(jFrame,save);
         },KeyStroke.getKeyStroke(KeyEvent.VK_S,InputEvent.CTRL_DOWN_MASK),JComponent.WHEN_IN_FOCUSED_WINDOW);
         vbox_3.add(save);
+        JButton play=new JButton("播放（Ctrl+P）");
+        play.addActionListener(e->
+        {
+            play_or_stop(jFrame,jTable,play);
+        });
+        play.registerKeyboardAction(e->
+        {
+            play_or_stop(jFrame,jTable,play);
+        },KeyStroke.getKeyStroke(KeyEvent.VK_P,InputEvent.CTRL_DOWN_MASK),JComponent.WHEN_IN_FOCUSED_WINDOW);
+        vbox_3.add(play);
         vbox_3.add(new JLabel("共"));
         vbox_3.add(total_pages);
         vbox_3.add(new JLabel("頁"));
@@ -383,6 +407,7 @@ public class Main
         JTable jTable=create_table(2*nrow,ncol);
         jTable.setColumnSelectionAllowed(false);
         jTable.setRowSelectionAllowed(false);
+        jTable.setCellSelectionEnabled(true);
         all.add(jTable);
         placeComponents(jTable);
         int pos=0;

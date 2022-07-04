@@ -35,6 +35,10 @@ public class Record
     }
     public static void write_records()
     {
+        if(null==records)
+        {
+            return;
+        }
         try
         {
             FileOutputStream fileOutputStream=new FileOutputStream(record_file);
